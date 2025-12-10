@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 
 #include "GP3_UEFPSWeaponComponent.h"
@@ -16,6 +16,8 @@
 // Sets default values for this component's properties
 UGP3_UEFPSWeaponComponent::UGP3_UEFPSWeaponComponent()
 {
+	SetIsReplicatedByDefault(true);
+
 	// Default offset from the character location for projectiles to spawn
 	MuzzleOffset = FVector(100.0f, 0.0f, 10.0f);
 }
@@ -28,26 +30,6 @@ void UGP3_UEFPSWeaponComponent::Fire()
 		return;
 	}
 
-	// Try and fire a projectile
-	if (ProjectileClass != nullptr)
-	{
-		UWorld* const World = GetWorld();
-		if (World != nullptr)
-		{
-			APlayerController* PlayerController = Cast<APlayerController>(Character->GetController());
-			const FRotator SpawnRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
-			// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
-			const FVector SpawnLocation = GetOwner()->GetActorLocation() + SpawnRotation.RotateVector(MuzzleOffset);
-	
-			//Set Spawn Collision Handling Override
-			FActorSpawnParameters ActorSpawnParams;
-			ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
-	
-			// Spawn the projectile at the muzzle
-			World->SpawnActor<AGP3_UEFPSProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
-		}
-	}
-	
 	// Try and play the sound if specified
 	if (FireSound != nullptr)
 	{
@@ -64,6 +46,17 @@ void UGP3_UEFPSWeaponComponent::Fire()
 			AnimInstance->Montage_Play(FireAnimation, 1.f);
 		}
 	}
+
+	if (!GetOwner()->HasAuthority())
+	{
+		// クライアント側ならサーバーRPCを呼ぶ
+		ServerFire();
+//		UKismetSystemLibrary::PrintString(this, TEXT("ClientFire!"), true, true, FColor::Red, 4.f, TEXT("None"));
+		return;
+	}
+	// サーバー側は直接 Spawn
+	// （Listen サーバーなら「自分がホストのクライアント」もここを通る）
+	ServerFire();
 }
 
 bool UGP3_UEFPSWeaponComponent::AttachWeapon(AGP3_UEFPSCharacter* TargetCharacter)
@@ -71,7 +64,7 @@ bool UGP3_UEFPSWeaponComponent::AttachWeapon(AGP3_UEFPSCharacter* TargetCharacte
 	Character = TargetCharacter;
 
 	// Check that the character is valid, and has no weapon component yet
-	if (Character == nullptr || Character->GetInstanceComponents().FindItemByClass<UGP3_UEFPSWeaponComponent>())
+	if (Character == nullptr || Character->FindComponentByClass<UGP3_UEFPSWeaponComponent>() != nullptr)
 	{
 		return false;
 	}
@@ -116,4 +109,30 @@ void UGP3_UEFPSWeaponComponent::EndPlay(const EEndPlayReason::Type EndPlayReason
 
 	// maintain the EndPlay call chain
 	Super::EndPlay(EndPlayReason);
+}
+
+void UGP3_UEFPSWeaponComponent::ServerFire_Implementation()
+{
+//	UKismetSystemLibrary::PrintString(this, TEXT("ServerFire!"), true, true, FColor::Red, 4.f, TEXT("None"));
+
+	// Try and fire a projectile
+	if (ProjectileClass != nullptr)
+	{
+		UWorld* const World = GetWorld();
+		if (World != nullptr)
+		{
+			APlayerController* PlayerController = Cast<APlayerController>(Character->GetController());
+			const FRotator SpawnRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
+			// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
+			const FVector SpawnLocation = GetOwner()->GetActorLocation() + SpawnRotation.RotateVector(MuzzleOffset);
+
+			//Set Spawn Collision Handling Override
+			FActorSpawnParameters ActorSpawnParams;
+			ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
+
+			// Spawn the projectile at the muzzle
+			World->SpawnActor<AGP3_UEFPSProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
+		}
+	}
+
 }

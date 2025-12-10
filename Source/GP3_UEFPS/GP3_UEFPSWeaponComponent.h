@@ -54,6 +54,9 @@ protected:
 	UFUNCTION()
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
+	UFUNCTION(Server, Reliable)
+	void ServerFire();
+
 private:
 	/** The Character holding this weapon*/
 	AGP3_UEFPSCharacter* Character;

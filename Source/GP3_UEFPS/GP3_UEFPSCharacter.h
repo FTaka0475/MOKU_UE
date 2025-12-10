@@ -48,12 +48,30 @@ class AGP3_UEFPSCharacter : public ACharacter
 public:
 	AGP3_UEFPSCharacter();
 
+	virtual float TakeDamage(
+		float DamageAmount,
+		struct FDamageEvent const& DamageEvent,
+		AController* EventInstigator,
+		AActor* DamageCauser
+	) override;
+
 protected:
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
+
+	UPROPERTY(ReplicatedUsing = OnRep_Health, EditDefaultsOnly, Category = "Health")
+	float Health = 100.0f;
+
+	UFUNCTION()
+	void OnRep_Health();
+
+	void Die();
+
+	// Rep ê›íË
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 protected:
 	// APawn interface

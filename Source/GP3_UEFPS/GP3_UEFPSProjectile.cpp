@@ -1,8 +1,9 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "GP3_UEFPSProjectile.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Components/SphereComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 AGP3_UEFPSProjectile::AGP3_UEFPSProjectile() 
 {
@@ -33,11 +34,24 @@ AGP3_UEFPSProjectile::AGP3_UEFPSProjectile()
 
 void AGP3_UEFPSProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	// Only add impulse and destroy projectile if we hit a physics
-	if ((OtherActor != nullptr) && (OtherActor != this) && (OtherComp != nullptr) && OtherComp->IsSimulatingPhysics())
+	// ★ダメージ処理はサーバーだけが行う
+	if (!HasAuthority())
 	{
-		OtherComp->AddImpulseAtLocation(GetVelocity() * 100.0f, GetActorLocation());
+		return;
+	}
 
-		Destroy();
+	// 自分自身や発射主には当てない
+	if (OtherActor && OtherActor != this && OtherActor != GetInstigator())
+	{
+		// シンプルに ApplyDamage を使う
+		UGameplayStatics::ApplyPointDamage(
+			OtherActor,
+			Damage,
+			Hit.TraceStart - Hit.TraceEnd,          // ダメージ方向
+			Hit,
+			GetInstigatorController(),
+			this,
+			nullptr   // UDamageType を分けたいならクラスを指定
+		);
 	}
 }

@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "GP3_UEFPSCharacter.h"
 #include "GP3_UEFPSProjectile.h"
@@ -10,6 +10,8 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "Engine/LocalPlayer.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "Net/UnrealNetwork.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -99,4 +101,48 @@ void AGP3_UEFPSCharacter::Look(const FInputActionValue& Value)
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
+}
+
+void AGP3_UEFPSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AGP3_UEFPSCharacter, Health);
+}
+
+float AGP3_UEFPSCharacter::TakeDamage(
+	float DamageAmount,
+	FDamageEvent const& DamageEvent,
+	AController* EventInstigator,
+	AActor* DamageCauser)
+{
+	// ここはサーバーでだけ呼ばれる想定（ApplyDamage したのがサーバーなので）
+	const float OldHealth = Health;
+	Health = FMath::Max(0.0f, Health - DamageAmount);
+
+	auto str = FString::Printf(TEXT("%s took %f damage -> %f"), *GetName(), DamageAmount, Health);
+	UKismetSystemLibrary::PrintString(this, str, true, true, FColor::Red, 4.f, TEXT("None"));
+
+	if (Health <= 0.0f && OldHealth > 0.0f)
+	{
+		UKismetSystemLibrary::PrintString(this, TEXT("Die!"), true, true, FColor::Red, 4.f, TEXT("None"));
+		Die();
+	}
+
+	return DamageAmount;
+}
+
+
+void AGP3_UEFPSCharacter::OnRep_Health()
+{
+	// クライアント側：UI更新やヒット演出など
+	UKismetSystemLibrary::PrintString(
+		this,
+		FString::Printf(TEXT("Health = %.1f"), Health),
+		true, false, FColor::Red, 1.0f);
+}
+
+void AGP3_UEFPSCharacter::Die()
+{
+	// 死亡処理（ラグドール、Respawn など）
 }
