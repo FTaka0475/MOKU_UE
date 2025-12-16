@@ -49,6 +49,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Weapon")
 	void Fire();
 
+	UFUNCTION()
+	void DropWeapon();
+
 protected:
 	/** Ends gameplay for this component. */
 	UFUNCTION()
@@ -60,4 +63,5 @@ protected:
 private:
 	/** The Character holding this weapon*/
 	AGP3_UEFPSCharacter* Character;
+	bool bInputBound = false;
 };

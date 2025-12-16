@@ -12,6 +12,7 @@
 #include "Animation/AnimInstance.h"
 #include "Engine/LocalPlayer.h"
 #include "Engine/World.h"
+#include "GP3_UEFPSPickUpComponent.h"
 
 // Sets default values for this component's properties
 UGP3_UEFPSWeaponComponent::UGP3_UEFPSWeaponComponent()
@@ -61,6 +62,11 @@ void UGP3_UEFPSWeaponComponent::Fire()
 
 bool UGP3_UEFPSWeaponComponent::AttachWeapon(AGP3_UEFPSCharacter* TargetCharacter)
 {
+	if (Character != nullptr)
+	{
+		return false;
+	}
+
 	Character = TargetCharacter;
 
 	// Check that the character is valid, and has no weapon component yet
@@ -68,10 +74,20 @@ bool UGP3_UEFPSWeaponComponent::AttachWeapon(AGP3_UEFPSCharacter* TargetCharacte
 	{
 		return false;
 	}
+	if (Character->GetCurrentWeapon() != nullptr)
+	{
+		return false;
+	}
 
 	// Attach the weapon to the First Person Character
 	FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
 	AttachToComponent(Character->GetMesh1P(), AttachmentRules, FName(TEXT("GripPoint")));
+
+	// 現在の武器を伝える
+	if (Character->HasAuthority())
+	{
+		Character->SetCurrentWeapon(this);
+	}
 
 	// Set up action bindings
 	if (APlayerController* PlayerController = Cast<APlayerController>(Character->GetController()))
@@ -84,12 +100,56 @@ bool UGP3_UEFPSWeaponComponent::AttachWeapon(AGP3_UEFPSCharacter* TargetCharacte
 
 		if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerController->InputComponent))
 		{
-			// Fire
-			EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &UGP3_UEFPSWeaponComponent::Fire);
+			if (!bInputBound)
+			{
+				// Fire
+				EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &UGP3_UEFPSWeaponComponent::Fire);
+				bInputBound = true;
+				auto str = FString::Printf(TEXT("BindAction"));
+				UKismetSystemLibrary::PrintString(this, str, true, true, FColor::Orange, 4.f, TEXT("None"));
+			}
 		}
 	}
 
 	return true;
+}
+
+void UGP3_UEFPSWeaponComponent::DropWeapon()
+{
+	if (!Character)
+	{
+		return;
+	}
+
+	// キャラの手から外す
+	DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+
+	// キャラとの関連を切る
+	Character = nullptr;
+
+	// ここからは「地面に落ちている武器」としての設定
+	if (AActor* OwnerActor = GetOwner()) // これが BP_Pickup_Rifle
+	{
+		auto str = FString::Printf(TEXT("DropWeapon Owner"));
+		UKismetSystemLibrary::PrintString(this, str, true, true, FColor::Blue, 4.f, TEXT("None"));
+
+		OwnerActor->SetOwner(nullptr);
+
+		// 拾えるようにコリジョンONに戻す
+		OwnerActor->SetActorEnableCollision(true);
+
+		// 物理で落としたければ
+		if (UPrimitiveComponent* Prim = Cast<UPrimitiveComponent>(OwnerActor->GetRootComponent()))
+		{
+			Prim->SetSimulatePhysics(true);
+		}
+
+		if (UGP3_UEFPSPickUpComponent* PickupComp =
+			OwnerActor->FindComponentByClass<UGP3_UEFPSPickUpComponent>())
+		{
+			PickupComp->ReactivatePickup();
+		}
+	}
 }
 
 void UGP3_UEFPSWeaponComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)

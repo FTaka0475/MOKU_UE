@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "GP3_UEFPSPickUpComponent.h"
 
@@ -28,4 +28,13 @@ void UGP3_UEFPSPickUpComponent::OnSphereBeginOverlap(UPrimitiveComponent* Overla
 		// Unregister from the Overlap Event so it is no longer triggered
 		OnComponentBeginOverlap.RemoveAll(this);
 	}
+}
+
+void UGP3_UEFPSPickUpComponent::ReactivatePickup()
+{
+	// Overlap を再登録
+	OnComponentBeginOverlap.AddDynamic(
+		this,
+		&UGP3_UEFPSPickUpComponent::OnSphereBeginOverlap
+	);
 }

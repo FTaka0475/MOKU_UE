@@ -23,6 +23,10 @@ public:
 	FOnPickUp OnPickUp;
 
 	UGP3_UEFPSPickUpComponent();
+
+	UFUNCTION()
+	void ReactivatePickup();
+
 protected:
 
 	/** Called when the game starts */

@@ -12,6 +12,9 @@
 #include "Engine/LocalPlayer.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Net/UnrealNetwork.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "GP3_UEFPSGameMode.h"
+#include "GP3_UEFPSWeaponComponent.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -133,6 +136,49 @@ float AGP3_UEFPSCharacter::TakeDamage(
 }
 
 
+void AGP3_UEFPSCharacter::SetCurrentWeapon(UGP3_UEFPSWeaponComponent* w)
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+	CurrentWeapon = w;
+}
+
+
+void AGP3_UEFPSCharacter::HandleRespawn(AController* DeadController)
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	if (DeadController == nullptr)
+	{
+		Destroy();
+		return;
+	}
+
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		Destroy();
+		return;
+	}
+
+	// GameModeを取得
+	AGP3_UEFPSGameMode* GM = World->GetAuthGameMode<AGP3_UEFPSGameMode>();
+	if (GM)
+	{
+		// PlayerStart から新しいキャラを spawn + Possess してくれる
+		GM->RestartPlayer(DeadController);
+	}
+
+	// 古い死体を削除
+	Destroy();
+}
+
+
 void AGP3_UEFPSCharacter::OnRep_Health()
 {
 	// クライアント側：UI更新やヒット演出など
@@ -145,4 +191,60 @@ void AGP3_UEFPSCharacter::OnRep_Health()
 void AGP3_UEFPSCharacter::Die()
 {
 	// 死亡処理（ラグドール、Respawn など）
+	// 念のためサーバーだけ
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	if (Health > 0.0f)
+	{
+		return;
+	}
+
+	// まず武器を落とす／リセット
+	if (CurrentWeapon)
+	{
+		CurrentWeapon->DropWeapon();
+		CurrentWeapon = nullptr;
+	}
+
+	// 移動停止
+	if (auto* MoveComp = GetCharacterMovement())
+	{
+		MoveComp->DisableMovement();
+	}
+
+	// 当たり判定オフ（撃たれたり当たったりしないように）
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	// 武器発射などの入力を止めたい場合は Controller のInputを無効にしたりも可
+	if (AController* PC = Controller)
+	{
+		PC->SetIgnoreMoveInput(true);
+		PC->SetIgnoreLookInput(true);
+	}
+
+	// Controllerを後で RestartPlayer に渡したいので退避
+	AController* DeadController = Controller;
+
+	// コントローラとこのPawnの関連を切る（RestartPlayerが新しいPawnを持てるように）
+	DetachFromControllerPendingDestroy();
+
+	// タイマーセット
+	if (UWorld* World = GetWorld())
+	{
+		FTimerDelegate RespawnDelegate;
+		RespawnDelegate.BindUObject(this, &AGP3_UEFPSCharacter::HandleRespawn, DeadController);
+
+		World->GetTimerManager().SetTimer(
+			RespawnTimerHandle,
+			RespawnDelegate,
+			RespawnDelay,
+			false  // ループしない
+		);
+	}
+
+	// ここで死体アニメやラグドールにしたければこのタイミングで
+	// Mesh1P->SetSimulatePhysics(true); など
 }

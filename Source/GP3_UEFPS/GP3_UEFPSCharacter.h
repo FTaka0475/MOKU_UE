@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 #pragma once
 
@@ -13,6 +13,8 @@ class UCameraComponent;
 class UInputAction;
 class UInputMappingContext;
 struct FInputActionValue;
+class AGP3_UEFPSGameMode;
+class UGP3_UEFPSWeaponComponent;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
@@ -55,6 +57,9 @@ public:
 		AActor* DamageCauser
 	) override;
 
+	UGP3_UEFPSWeaponComponent* GetCurrentWeapon() const { return CurrentWeapon; }
+	void SetCurrentWeapon(UGP3_UEFPSWeaponComponent* w);
+
 protected:
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
@@ -65,12 +70,26 @@ protected:
 	UPROPERTY(ReplicatedUsing = OnRep_Health, EditDefaultsOnly, Category = "Health")
 	float Health = 100.0f;
 
+	// 今持っている武器
+	UPROPERTY(Replicated)
+	UGP3_UEFPSWeaponComponent* CurrentWeapon = nullptr;
+
+	// リスポーンまでの待ち時間
+	UPROPERTY(EditDefaultsOnly, Category = "Respawn")
+	float RespawnDelay = 2.0f;
+
+	// リスポーンタイマー
+	FTimerHandle RespawnTimerHandle;
+
+	UFUNCTION()
+	void HandleRespawn(AController* DeadController);
+
 	UFUNCTION()
 	void OnRep_Health();
 
 	void Die();
 
-	// Rep �ݒ�
+	// Rep 設定
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 protected:
