@@ -22,4 +22,7 @@ class GP3_UEFPS_API ALobbyGameMode : public AGP3_UEFPSGameMode
 
 public:
 	static constexpr int MaxPlayers = 2;
+
+protected:
+	int nextTeamId = 0;
 };

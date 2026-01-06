@@ -11,6 +11,7 @@
 #include "GameFramework/GameStateBase.h"
 #include "GenericPlatform/GenericPlatformHttp.h"
 #include "Misc/CommandLine.h"
+#include "GP3PlayerState.h"
 
 
 FString ALobbyGameMode::InitNewPlayer(APlayerController* NewPlayer, const FUniqueNetIdRepl& UniqueId, const FString& Options, const FString& Portal)
@@ -74,6 +75,12 @@ void ALobbyGameMode::PostLogin(APlayerController* NewPlayer)
             return;
         }
     }
+
+    AGP3PlayerState* PS = NewPlayer->GetPlayerState<AGP3PlayerState>();
+    if (!PS) return;
+
+    PS->TeamId = nextTeamId;
+    nextTeamId++;
 
     TryStartIfReady();
 }
