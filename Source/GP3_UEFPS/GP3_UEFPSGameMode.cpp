@@ -13,3 +13,22 @@ AGP3_UEFPSGameMode::AGP3_UEFPSGameMode()
 	DefaultPawnClass = PlayerPawnClassFinder.Class;
 	PlayerStateClass = AGP3PlayerState::StaticClass();
 }
+
+void AGP3_UEFPSGameMode::PostLogin(APlayerController* NewPlayer)
+{
+	Super::PostLogin(NewPlayer);
+
+	// サーバー以外では処理しない
+	if (!HasAuthority()) return;
+
+	// スタンドアロン（ネットワークなし）なら無視
+	if (GetNetMode() == NM_Standalone) return;
+
+	AGP3PlayerState* PS = NewPlayer->GetPlayerState<AGP3PlayerState>();
+	if (!PS) return;
+
+	PS->TeamId = nextTeamId;
+	nextTeamId++;
+
+	UE_LOG(LogTemp, Log, TEXT("TeamId=%d"), PS->TeamId);
+}

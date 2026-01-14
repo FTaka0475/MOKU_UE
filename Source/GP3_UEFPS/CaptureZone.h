@@ -41,4 +41,9 @@ protected:
     void ZoneUpdate();
 
     FTimerHandle TickHandle;
+
+    int DominatingTeamId = -1;
+    int DominateCount = 0;
+
+    static constexpr int DominateCountMax = 15;
 };

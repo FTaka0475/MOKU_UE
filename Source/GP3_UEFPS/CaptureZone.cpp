@@ -4,6 +4,10 @@
 #include "CaptureZone.h"
 #include "Components/BoxComponent.h"
 #include "GP3_UEFPSCharacter.h"
+#include "LobbyGameMode.h"
+#include "GP3PlayerState.h"
+#include "GameStartGameState.h"
+#include <algorithm>
 
 // Sets default values
 ACaptureZone::ACaptureZone()
@@ -58,7 +62,10 @@ void ACaptureZone::BeginPlay()
 
 void ACaptureZone::ZoneUpdate()
 {
-    int32 Count = 0;
+    std::vector<int> counts; // チームごとのゾーンに入っている人数
+    counts.insert(counts.begin(), ALobbyGameMode::MaxPlayers, 0);
+
+    // ゾーンに含まれるプレイヤーを全てループ
     for (auto It = CharactersInZone.CreateIterator(); It; ++It)
     {
         if (!It->IsValid())
@@ -66,12 +73,51 @@ void ACaptureZone::ZoneUpdate()
             It.RemoveCurrent();
             continue;
         }
-        Count++;
+
+        auto ps = It->Get()->GetPlayerState<AGP3PlayerState>();
+        if (ps != nullptr)
+        {
+            // PlayerStateから取得できるTeamIdに応じたcountsを加算
+            counts[ps->TeamId]++;
+        }
     }
-        
-    if (Count > 0)
+
+    // 数えた人数が最大の要素を指すcountsのイテレータを取得
+    auto itMax = std::ranges::max_element(counts);
+
+    // 人数が最大のチームの数が単独で存在している場合だけ true
+    auto isDominant = std::ranges::count(counts, *itMax) == 1;
+
+    if (isDominant)
     {
-        UE_LOG(LogTemp, Warning, TEXT("Zone %s : players=%d"), *GetName(), Count);
+        int teamId = itMax - counts.begin();
+        if (DominatingTeamId == teamId)
+        {
+            DominateCount++;
+            if (DominateCount == DominateCountMax)
+            {
+                // 占領が完了した
+                AGameStartGameState* GS = GetWorld()->GetGameState<AGameStartGameState>();
+                if (!GS) return;
+
+                // 占領したことをゲームステートに通知
+                GS->OnDominate(GetName(), DominatingTeamId);
+            }
+        }
+        else
+        {
+            DominatingTeamId = teamId;
+            DominateCount = 0;
+        }
+        UE_LOG(LogTemp, Log, TEXT("DominatingTeamId =%d DominateCount=%d"), DominatingTeamId, DominateCount);
+    }
+    else
+    {
+        if (DominateCount > 0)
+        {
+            DominateCount--;
+            UE_LOG(LogTemp, Log, TEXT("DominatingTeamId =%d DominateCount=%d"), DominatingTeamId, DominateCount);
+        }
     }
 }
 

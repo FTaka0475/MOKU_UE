@@ -13,6 +13,11 @@ class AGP3_UEFPSGameMode : public AGameModeBase
 
 public:
 	AGP3_UEFPSGameMode();
+
+	virtual void PostLogin(APlayerController* NewPlayer) override;
+
+protected:
+	int nextTeamId = 0;
 };
 
 

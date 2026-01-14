@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <map>
 #include "CoreMinimal.h"
 #include "GameFramework/GameStateBase.h"
 #include "GameStartGameState.generated.h"
@@ -23,14 +24,20 @@ public:
 
 	void TickCountdown();
 
+	void TickGameCount();
+
 	UFUNCTION()
 	void OnRep_RemainingTime();
 
 	void OnRep_GameStarted();
 
+	void OnRep_GameEnd();
+
 	bool isGameStarted() const { return bGameStarted; }
 
 	void ResetPosition();
+
+	void OnDominate(const FString& zoneName, int teamId);
 
 protected:
 	UPROPERTY(Replicated)
@@ -41,4 +48,8 @@ protected:
 
 	FTimerHandle CheckTimerHandle;
 	FTimerHandle CountdownTimerHandle;
+	FTimerHandle GameCountTimerHandle;
+
+	static constexpr int GameCountMax = 60;
+	std::map<FString, int> DominatedTeamMap;
 };
