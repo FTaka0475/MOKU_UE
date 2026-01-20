@@ -76,12 +76,6 @@ void ALobbyGameMode::PostLogin(APlayerController* NewPlayer)
         }
     }
 
-    AGP3PlayerState* PS = NewPlayer->GetPlayerState<AGP3PlayerState>();
-    if (!PS) return;
-
-    PS->TeamId = nextTeamId;
-    nextTeamId++;
-
     TryStartIfReady();
 }
 

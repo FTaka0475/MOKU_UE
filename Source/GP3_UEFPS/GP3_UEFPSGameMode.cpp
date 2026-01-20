@@ -12,6 +12,14 @@ AGP3_UEFPSGameMode::AGP3_UEFPSGameMode()
 	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnClassFinder(TEXT("/Game/FirstPerson/Blueprints/BP_FirstPersonCharacter"));
 	DefaultPawnClass = PlayerPawnClassFinder.Class;
 	PlayerStateClass = AGP3PlayerState::StaticClass();
+
+	static ConstructorHelpers::FClassFinder<APlayerController>
+		PCClass(TEXT("/Game/Blueprints/BP_PlayerController"));
+
+	if(PCClass.Succeeded())
+	{
+		PlayerControllerClass = PCClass.Class;
+	}
 }
 
 void AGP3_UEFPSGameMode::PostLogin(APlayerController* NewPlayer)

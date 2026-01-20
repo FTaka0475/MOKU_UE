@@ -97,21 +97,18 @@ void USessionSubsystem::OnCreateComplete(FName, bool bOk)
     if (!bOk) { ClearDelegates(); return; }
 
     const FString CurrentMap = GetWorld()->GetOutermost()->GetName(); // "/Game/Maps/Lobby" など
+    if (IOnlineSubsystem* os = IOnlineSubsystem::Get())
+    {
+        if (IOnlineSessionPtr sess = os->GetSessionInterface())
+        {
+            // セッション開始（内部状態を「スタート」に）
+            sess->StartSession(NAME_GameSession);
+            UKismetSystemLibrary::PrintString(this, "OnCreateComplete: Success!!",
+                true, true, FColor::Cyan, 4.f, TEXT("None"));
+        }
+    }
     UGameplayStatics::OpenLevel(GetWorld(), FName(*CurrentMap), true, TEXT("?listen"));
 
-    // 1フレーム/数百ms遅らせてから StartSession（NetDriver がポート確定後）
-    FTimerHandle Th;
-    GetWorld()->GetTimerManager().SetTimer(Th, [this]()
-        {
-            if (IOnlineSubsystem* OSS = IOnlineSubsystem::Get())
-                if (IOnlineSessionPtr Session = OSS->GetSessionInterface())
-                {
-                    // セッション開始（内部状態を「スタート」に）
-                    Session->StartSession(NAME_GameSession);
-                    UKismetSystemLibrary::PrintString(this, "OnCreateComplete: Success!!",
-                        true, true, FColor::Cyan, 4.f, TEXT("None"));
-                }
-        }, 0.5f, false);
 
 }
 
@@ -141,6 +138,7 @@ void USessionSubsystem::FindLanSessions(int32 MaxResults)
         LastRows.Reset();
         OnFindFinished.Broadcast(LastRows);
     }
+    UKismetSystemLibrary::PrintString(this, "FindSessions Start", true, true, FColor::Blue, 4.f, TEXT("None"));
 }
 
 void USessionSubsystem::OnFindComplete(bool bOk)

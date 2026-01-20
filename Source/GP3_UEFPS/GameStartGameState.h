@@ -7,6 +7,8 @@
 #include "GameFramework/GameStateBase.h"
 #include "GameStartGameState.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGameFinished, int, V);
+
 /**
  * 
  */
@@ -29,15 +31,23 @@ public:
 	UFUNCTION()
 	void OnRep_RemainingTime();
 
-	void OnRep_GameStarted();
+	void Server_GameStarted();
 
-	void OnRep_GameEnd();
+	void Server_GameEnd();
+
+	UFUNCTION()
+	void OnRep_GameFinish();
 
 	bool isGameStarted() const { return bGameStarted; }
+	bool isGameFinished() const { return bFinished; }
 
 	void ResetPosition();
 
 	void OnDominate(const FString& zoneName, int teamId);
+
+	// UIがBPで受け取りやすいようにイベントも用意
+	UPROPERTY(BlueprintAssignable)
+	FOnGameFinished OnGameFinished;
 
 protected:
 	UPROPERTY(Replicated)
@@ -45,6 +55,11 @@ protected:
 
 	UPROPERTY(ReplicatedUsing = OnRep_RemainingTime)
 	int32 RemainingTime;
+
+	UPROPERTY(ReplicatedUsing = OnRep_GameFinish, BlueprintReadOnly)
+	int Winner;
+
+	bool bFinished;
 
 	FTimerHandle CheckTimerHandle;
 	FTimerHandle CountdownTimerHandle;

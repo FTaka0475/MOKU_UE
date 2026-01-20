@@ -10,7 +10,7 @@ public class GP3_UEFPS : ModuleRules
 
 		PublicDependencyModuleNames.AddRange(new string[] {
 			"Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput",
-            "OnlineSubsystem","OnlineSubsystemUtils", "Http"
+            "OnlineSubsystem","OnlineSubsystemUtils", "OnlineSubsystemEOS", "Http"
         });
 	}
 }
