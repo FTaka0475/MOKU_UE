@@ -57,7 +57,7 @@ protected:
 	int32 RemainingTime;
 
 	UPROPERTY(ReplicatedUsing = OnRep_GameFinish, BlueprintReadOnly)
-	int Winner;
+	int Winner = -2;
 
 	bool bFinished;
 
@@ -65,6 +65,6 @@ protected:
 	FTimerHandle CountdownTimerHandle;
 	FTimerHandle GameCountTimerHandle;
 
-	static constexpr int GameCountMax = 60;
+	static constexpr int GameCountMax = 20;
 	std::map<FString, int> DominatedTeamMap;
 };

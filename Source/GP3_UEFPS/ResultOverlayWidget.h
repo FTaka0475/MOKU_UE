@@ -14,4 +14,7 @@ class GP3_UEFPS_API UResultOverlayWidget : public UUserWidget
 {
 	GENERATED_BODY()
 	
+public:
+	UFUNCTION(BlueprintImplementableEvent, Category = "Finish")
+	void SetWinner(const FString& Name);
 };

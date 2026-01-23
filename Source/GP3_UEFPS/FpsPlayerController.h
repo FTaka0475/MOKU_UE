@@ -6,6 +6,8 @@
 #include "GameFramework/PlayerController.h"
 #include "FpsPlayerController.generated.h"
 
+class UResultOverlayWidget;
+
 /**
  * 
  */
@@ -27,5 +29,5 @@ protected:
 
 	// 実体（重複生成防止用）
 	UPROPERTY()
-	UUserWidget* ResultOverlayWidget = nullptr;
+	UResultOverlayWidget* ResultOverlayWidget = nullptr;
 };
