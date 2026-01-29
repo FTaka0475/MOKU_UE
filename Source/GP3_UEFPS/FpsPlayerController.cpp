@@ -9,6 +9,7 @@
 #include "ResultOverlayWidget.h"
 
 
+
 void AFpsPlayerController::BeginPlay()
 {
     Super::BeginPlay();
@@ -54,6 +55,7 @@ void AFpsPlayerController::HandleGameFinished(int winner)
         bShowMouseCursor = true;
         SetInputMode(FInputModeUIOnly());
         FString name = FString::Printf(TEXT("%d"), winner);
+        name = Session->GetUserName();
         ResultOverlayWidget->SetWinner(name);
     }
 }

@@ -2,9 +2,11 @@
 
 #pragma once
 
+#include "SessionSubsystem.h"
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
 #include "FpsPlayerController.generated.h"
+
 
 class UResultOverlayWidget;
 
@@ -16,6 +18,7 @@ class GP3_UEFPS_API AFpsPlayerController : public APlayerController
 {
 	GENERATED_BODY()
 
+	
 protected:
 	virtual void Tick(float deltaSeconds) override;
 	virtual void BeginPlay() override;
@@ -30,4 +33,6 @@ protected:
 	// 実体（重複生成防止用）
 	UPROPERTY()
 	UResultOverlayWidget* ResultOverlayWidget = nullptr;
+
+	USessionSubsystem* Session = nullptr;
 };

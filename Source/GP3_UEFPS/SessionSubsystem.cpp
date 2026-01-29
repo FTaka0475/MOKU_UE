@@ -234,3 +234,8 @@ void USessionSubsystem::StartSession()
         }
     }
 }
+
+FString USessionSubsystem::GetUserName() const
+{
+    return UserName;
+}

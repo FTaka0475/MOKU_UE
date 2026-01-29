@@ -49,6 +49,8 @@ public:
     UPROPERTY(BlueprintAssignable) FOnCreateFinished OnCreateFinished;
     UPROPERTY(BlueprintAssignable) FOnFindFinished   OnFindFinished;
     UPROPERTY(BlueprintAssignable) FOnJoinFinished   OnJoinFinished;
+    
+    FString GetUserName() const;
 
 private:
     // Online Subsystem 取得
