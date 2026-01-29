@@ -67,4 +67,5 @@ protected:
 
 	static constexpr int GameCountMax = 20;
 	std::map<FString, int> DominatedTeamMap;
+
 };

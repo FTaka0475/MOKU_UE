@@ -13,5 +13,7 @@ UCLASS()
 class GP3_UEFPS_API UGamePlayWidget : public UUserWidget
 {
 	GENERATED_BODY()
-	
+public:
+	UFUNCTION(BlueprintImplementableEvent, Category = "Time")
+	void SetTimer(const FString& Name);
 };

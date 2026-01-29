@@ -8,6 +8,7 @@
 #include "LobbyGameMode.h"
 #include "GameFramework/PlayerStart.h"
 #include "GameFramework/PlayerState.h"
+#include "GamePlayWidget.h"
 
 
 void AGameStartGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -122,6 +123,10 @@ void AGameStartGameState::OnDominate(const FString& zoneName, int teamId)
 void AGameStartGameState::OnRep_RemainingTime()
 {
     auto str = FString::Printf(TEXT("RemainingTime = %d"), RemainingTime);
+    /*GamePlayWidget = CreateWidget<UGamePlayWidget>(
+        this,
+        ResultOverlayWidgetClass
+    );*/
     UKismetSystemLibrary::PrintString(this, str, true, true, FColor::Orange, 6.f, TEXT("None"));
 }
 
