@@ -27,7 +27,7 @@ protected:
 	void HandleGameFinished(int winner);
 
 	// Result表示用Widgetクラス
-	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	UPROPERTY(EditDefaultsOnly, Category = "UITime")
 	TSubclassOf<UUserWidget> ResultOverlayWidgetClass;
 
 	// 実体（重複生成防止用）

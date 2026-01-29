@@ -8,7 +8,7 @@
 #include "GameStartGameState.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGameFinished, int, V);
-
+class UGamePlayWidget;
 /**
  * 
  */
@@ -68,4 +68,11 @@ protected:
 	static constexpr int GameCountMax = 20;
 	std::map<FString, int> DominatedTeamMap;
 
+	// Result表示用Widgetクラス
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UUserWidget> GamePlayWidgetClass;
+
+	// 実体（重複生成防止用）
+	UPROPERTY()
+	UGamePlayWidget* GamePlayWidget = nullptr;
 };

@@ -123,10 +123,16 @@ void AGameStartGameState::OnDominate(const FString& zoneName, int teamId)
 void AGameStartGameState::OnRep_RemainingTime()
 {
     auto str = FString::Printf(TEXT("RemainingTime = %d"), RemainingTime);
-    /*GamePlayWidget = CreateWidget<UGamePlayWidget>(
-        this,
-        ResultOverlayWidgetClass
-    );*/
+    GamePlayWidget = CreateWidget<UGamePlayWidget>(
+        GetWorld(),
+        GamePlayWidgetClass
+    );
+    if (GamePlayWidget != nullptr)
+    {
+        GamePlayWidget->AddToViewport();
+        FString time = FString::Printf(TEXT("%d"), RemainingTime);
+        GamePlayWidget->SetTimer(time);
+    }
     UKismetSystemLibrary::PrintString(this, str, true, true, FColor::Orange, 6.f, TEXT("None"));
 }
 
