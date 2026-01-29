@@ -51,7 +51,6 @@ void AFpsPlayerController::HandleGameFinished(int winner)
     if(ResultOverlayWidget != nullptr)
     {
         ResultOverlayWidget->AddToViewport();
-
         bShowMouseCursor = true;
         SetInputMode(FInputModeUIOnly());
         FString name = FString::Printf(TEXT("%d"), winner);
