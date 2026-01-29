@@ -2,6 +2,7 @@
 
 
 #include "FpsPlayerController.h"
+#include "GameFramework/PlayerState.h"
 #include "GameStartGameState.h"
 #include "Blueprint/UserWidget.h"
 #include "Kismet/GameplayStatics.h"
@@ -52,7 +53,6 @@ void AFpsPlayerController::HandleGameFinished(int winner)
 
         bShowMouseCursor = true;
         SetInputMode(FInputModeUIOnly());
-
         FString name = FString::Printf(TEXT("%d"), winner);
         ResultOverlayWidget->SetWinner(name);
     }
