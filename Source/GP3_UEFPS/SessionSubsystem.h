@@ -43,6 +43,8 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Session")
     void JoinBySearchIndex(int32 SearchIndex);
 
+    UFUNCTION(BlueprintCallable, Category = "Session")
+    void StartSession();
     // UIと繋ぎやすいようにイベント化
     UPROPERTY(BlueprintAssignable) FOnCreateFinished OnCreateFinished;
     UPROPERTY(BlueprintAssignable) FOnFindFinished   OnFindFinished;

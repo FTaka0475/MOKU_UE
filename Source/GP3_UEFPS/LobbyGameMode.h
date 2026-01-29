@@ -19,7 +19,7 @@ class GP3_UEFPS_API ALobbyGameMode : public AGP3_UEFPSGameMode
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 	virtual void Logout(AController* Exiting) override;
 	void TryStartIfReady();
-
+	virtual void BeginPlay() override;
 public:
 	static constexpr int MaxPlayers = 2;
 };
